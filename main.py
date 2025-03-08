@@ -19,12 +19,13 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
-gameTitle = "Labyrinthe"
+gameTitle = "Maze"
 backgroundColor = BLACK
 playerColor = RED
 exitColor = GREEN
 wallColor = BLACK
 wayColor = WHITE
+textColor = WHITE
 
 
 # Positions Initiales
@@ -65,11 +66,12 @@ maze = generate_maze(31)
 maze[EXIT_Y][EXIT_X] = EXIT
 
 # Calcul de la taille de l'écran en fonction du labyrinthe
-CELL_SIZE = 30 
+CELL_SIZE = 30
+BOTTOM_PADDING = 50
 ROWS = len(maze)
 COLS = len(maze[0])
 WIDTH = COLS * CELL_SIZE
-HEIGHT = ROWS * CELL_SIZE
+HEIGHT = ROWS * CELL_SIZE + BOTTOM_PADDING
 
 # Variables globales pour la position du joueur
 player_x, player_y = PLAYER_START_X, PLAYER_START_Y
@@ -115,6 +117,14 @@ def game_loop():
     global player_x, player_y  # Utiliser les variables globales pour la position du joueur
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption(gameTitle)
+
+    # Initialiser les polices et le texte
+    font = pygame.font.SysFont(None, 36)  # Default font, size 36
+    prompt_text = font.render("Press SPACE to launch AI", True, textColor)
+    prompt_text2 = font.render("Press 'R' to restart AI", True, textColor)
+    text_rect = prompt_text.get_rect(center=(WIDTH//2, HEIGHT - 30))  # Bottom 
+    text2_rect = prompt_text.get_rect(center=(WIDTH//2, HEIGHT - 30))
+
     clock = pygame.time.Clock()
     agent_activated = False
     running = True
@@ -156,7 +166,9 @@ def game_loop():
                 x, y = optimal_path[current_step]
                 pygame.draw.rect(screen, RED, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
                 current_step += 1  # Passer à l'étape suivante
-
+            screen.blit(prompt_text2, text2_rect)
+        else:
+            screen.blit(prompt_text, text_rect)
         pygame.display.update()  # Mettre à jour l'affichage à chaque frame
         clock.tick(30)  # Contrôler la vitesse d'affichage (10 étapes par seconde)
     
