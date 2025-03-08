@@ -1,13 +1,8 @@
 import pygame
 from ia import QLearningAgent
+import random
 
 pygame.init()
-
-# Positions Initiales
-PLAYER_START_X, PLAYER_START_Y = 1, 1
-START_POS = (PLAYER_START_X, PLAYER_START_Y)
-EXIT_X, EXIT_Y = 13, 13
-EXIT_POS = (EXIT_X, EXIT_Y)
 
 # Directions
 DIRECTIONS = {
@@ -31,38 +26,46 @@ exitColor = GREEN
 wallColor = BLACK
 wayColor = WHITE
 
+
+# Positions Initiales
+PLAYER_START_X, PLAYER_START_Y = 0, 0
+START_POS = (PLAYER_START_Y, PLAYER_START_X)
+EXIT_X, EXIT_Y = 30, 30
+EXIT_POS = (EXIT_X, EXIT_Y)
 EXIT = 2
 
 # Labyrinthe
-maze = [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,1,0,0,0,0,0,1,0,0,0,1],
-    [1,1,1,0,1,0,1,1,1,0,1,0,1,0,1],
-    [1,0,0,0,0,0,1,0,0,0,1,0,1,0,1],
-    [1,0,1,1,1,1,1,0,1,1,1,0,1,0,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,1,0,1],
-    [1,1,1,1,1,0,1,1,1,0,1,1,1,0,1],
-    [1,0,0,0,1,0,0,0,1,0,0,0,1,0,1],
-    [1,0,1,0,1,1,1,0,1,1,1,0,1,0,1],
-    [1,0,1,0,0,0,1,0,0,0,1,0,1,0,1],
-    [1,0,1,1,1,0,1,1,1,0,1,0,1,0,1],
-    [1,0,0,0,1,0,0,0,1,0,0,0,1,0,1],
-    [1,1,1,0,1,1,1,0,1,1,1,1,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,EXIT,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-]
+def generate_maze(size):
+    maze = [[1] * size for _ in range(size)]
+    
+    def carve(x, y):
+        maze[y][x] = 0
+        directions = [(0, 2), (2, 0), (0, -2), (-2, 0)]
+        random.shuffle(directions)
+        
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < size and 0 <= ny < size and maze[ny][nx] == 1:
+                maze[y + dy // 2][x + dx // 2] = 0
+                carve(nx, ny)
+    
+    # Démarrer le carving depuis l'entrée
+    carve(0, 0)
+    
+    # Marquer l'entrée (déjà fait par carve) et la sortie (via l'algorithme)
+    maze[PLAYER_START_X][PLAYER_START_Y] = 0  # Entrée (assuré par carve)
+    maze[EXIT_X][EXIT_Y] = EXIT
+    # Supprimer la ligne qui force la sortie à 0
+    
+    return maze
 
-agent = QLearningAgent(maze=maze, 
-                       start_pos=(PLAYER_START_Y, PLAYER_START_X),
-                       exit_pos=(EXIT_Y, EXIT_X))
-agent.train(1000)
+# Générer un labyrinthe 31x31
+maze = generate_maze(31)
 
-# Pour visualiser le chemin trouvé
-optimal_path = agent.get_optimal_path()
-current_step = 0
+maze[EXIT_Y][EXIT_X] = EXIT
 
 # Calcul de la taille de l'écran en fonction du labyrinthe
-CELL_SIZE = 40 
+CELL_SIZE = 30 
 ROWS = len(maze)
 COLS = len(maze[0])
 WIDTH = COLS * CELL_SIZE
@@ -75,9 +78,9 @@ def draw_maze(maze):
     for y in range(len(maze)):
         for x in range(len(maze[y])):
             rect = (x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            if maze[y][x] == 0:
+            if maze[y][x] == 1:
                 pygame.draw.rect(screen, wayColor, rect)
-            elif maze[y][x] == 1:
+            elif maze[y][x] == 0:
                 pygame.draw.rect(screen, wallColor, rect)
             elif maze[y][x] == EXIT:
                 pygame.draw.rect(screen, exitColor, rect)
@@ -96,6 +99,17 @@ def check_win(x, y):
     """Vérifie si le joueur a atteint la sortie."""
     return maze[y][x] == EXIT
 
+
+
+# Paramètre et initialisation de l'agent
+agent = QLearningAgent(maze=maze, start_pos=START_POS, exit_pos=EXIT_POS)
+agent.train(1000)
+
+# Pour visualiser le chemin trouvé
+optimal_path = agent.get_optimal_path()
+current_step = 0
+
+# Boucle de jeu
 def game_loop():
     global current_step
     global player_x, player_y  # Utiliser les variables globales pour la position du joueur
@@ -114,6 +128,7 @@ def game_loop():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:  # Réinitialiser avec la touche R
                     current_step = 0
+                    agent_activated = False
                 if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:  # Activer l'agent avec la touche ENTRER ou ESPACE
                     agent_activated = True
                 if event.key in DIRECTIONS:
@@ -143,7 +158,7 @@ def game_loop():
                 current_step += 1  # Passer à l'étape suivante
 
         pygame.display.update()  # Mettre à jour l'affichage à chaque frame
-        clock.tick(10)  # Contrôler la vitesse d'affichage (10 étapes par seconde)
+        clock.tick(30)  # Contrôler la vitesse d'affichage (10 étapes par seconde)
     
     pygame.quit()
 
