@@ -12,11 +12,11 @@ A randomly generated maze project where an AI agent learns to find the exit usin
 ## 📸 Results
 | Generated Maze | Optimal Solution |
 |----------------|------------------|
-| [Generated_Maze](https://github.com/user-attachments/assets/12f51a98-ebf1-4d14-ad76-40e8a122a1db) | ![Optimal_Path](https://github.com/user-attachments/assets/546a66e4-c87a-4054-b14f-3eeb73f90c06)|
+| ![Generated_Maze](https://github.com/user-attachments/assets/77976a80-f2fb-4988-a6e1-953658b13aa4) | ![Optimal_Path](https://github.com/user-attachments/assets/546a66e4-c87a-4054-b14f-3eeb73f90c06)|
 
 ## 🛠 Prerequisites
 - Python 3.x
-- Libraries: `pygame`, `numpy`![Uploading Labyrinthe.png…]()
+- Libraries: `pygame`, `numpy`
 
   
 Install dependencies with:
